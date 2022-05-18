@@ -1,7 +1,7 @@
 import time
 
 import openpyxl
-from Persona import Persona
+from persona import Persona
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -14,7 +14,7 @@ sheet = workbook.active
 a1 = sheet['A1']
 a2 = sheet['A2']
 filas = sheet
-lista_perosnas = []
+lista_personas = []
 
 for fila in filas.iter_rows(min_row=2):
     nom = fila[0].value
@@ -22,7 +22,7 @@ for fila in filas.iter_rows(min_row=2):
     pob = fila[2].value
     hab = fila[3].value
     p_max = fila[4].value
-    lista_perosnas.append(Persona(nom,tlf,pob,hab,p_max))
+    lista_personas.append(Persona(nom, tlf, pob, hab, p_max))
 
 workbook.close()
 # FIN DEL EXCEL #
@@ -34,6 +34,8 @@ Después hay que ejecutar chrome con este comando
  .\chrome.exe --remote-debugging-port=9999 --user-data-dir="C:\test"
 
 """
+
+
 def quitar_card(driver):
     try:
         btn = driver.find_elements(by=By.XPATH,
@@ -41,11 +43,11 @@ def quitar_card(driver):
         if btn:
             btn[0].click()
         time.sleep(1)
-    except :
+    except:
         pass
 
 
-for persona in lista_perosnas:
+for persona in lista_personas:
     # Abrir navegador
     chrome_options = Options()
     chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9999")
@@ -60,24 +62,26 @@ for persona in lista_perosnas:
         btn_cookies[0].click()
 
     # Buscar provincia
-    barra_busqueda = driver.find_elements(by=By.XPATH, value="//input[@placeholder='Buscar vivienda en municipio, barrio...']")
+    barra_busqueda = driver.find_elements(by=By.XPATH,
+                                          value="//input[@placeholder='Buscar vivienda en municipio, barrio...']")
     barra_busqueda[0].send_keys(persona.poblacion)
     btn_busqueda = driver.find_elements(by=By.XPATH, value="//button[@type='submit']")
     btn_busqueda[0].click()
     time.sleep(1)
 
     # Precio Máximo
-    driver.find_elements(by=By.XPATH, value="//div[@class='sui-MoleculeSelectPopover-select sui-MoleculeSelectPopover-select--m']")[2].click()
+    driver.find_elements(by=By.XPATH,
+                         value="//div[@class='sui-MoleculeSelectPopover-select sui-MoleculeSelectPopover-select--m']")[2].click()
     time.sleep(1)
     driver.find_elements(by=By.XPATH, value="//input[@value='Indiferente']")[1].click()
     time.sleep(1)
 
-    preciomax = driver.find_elements(By.XPATH,
-    value=f"//*[@id='App']/div[2]/div[1]/div[3]/div/div/div/div/div/div/div/div/div/div/div/div/ul/li[@data-value={persona.precio_max}]")
+    elemento_precio_max = driver.find_elements(By.XPATH,
+                                               value=f"//*[@id='App']/div[2]/div[1]/div[3]/div/div/div/div/div/div/div/div/div/div/div/div/ul/li[@data-value={persona.precio_max}]")
 
-    if preciomax[0]:
+    if elemento_precio_max[0]:
         lista_precios_ul = driver.find_elements(By.XPATH,
-        value=f"//*[@id='App']/div[2]/div[1]/div[3]/div/div/div/div/div/div/div/div/div/div/div/div/ul")
+                                                value=f"//*[@id='App']/div[2]/div[1]/div[3]/div/div/div/div/div/div/div/div/div/div/div/div/ul")
         flag = True
         pixeles = 10
         while flag:
@@ -89,7 +93,7 @@ for persona in lista_perosnas:
                 actions.perform()
                 time.sleep(0.5)
                 pixeles += 10
-                preciomax[1].click()
+                elemento_precio_max[1].click()
                 flag = False
                 time.sleep(1)
             except Exception as e:
@@ -101,10 +105,11 @@ for persona in lista_perosnas:
     quitar_card(driver)
 
     # Número de habitaciones
-    driver.find_elements(by=By.XPATH, value="//div[@class='sui-MoleculeSelectPopover-select sui-MoleculeSelectPopover-select--m']")[2].click()
+    driver.find_elements(by=By.XPATH,
+                         value="//div[@class='sui-MoleculeSelectPopover-select sui-MoleculeSelectPopover-select--m']")[2].click()
     time.sleep(3)
     driver.find_elements(by=By.XPATH,
-    value=f"//*[@id='App']/div[2]/div[1]/div[3]/div/div[2]/div[3]/div[2]/div[1]/div/div/div[2]/button[@aria-label='{persona.habitaciones}+']")[0].click()
+                         value=f"//*[@id='App']/div[2]/div[1]/div[3]/div/div[2]/div[3]/div[2]/div[1]/div/div/div[2]/button[@aria-label='{persona.habitaciones}+']")[0].click()
     driver.find_elements(By.XPATH, value="//*[@id='App']/div[2]/div[1]/div[3]/div/div[2]/div[3]/div[2]/div[2]/button")[0].click()
     time.sleep(1)
     quitar_card(driver)
@@ -122,10 +127,11 @@ for persona in lista_perosnas:
     precio_publicacion.click()
     url_publicacion = driver.current_url
 
-    #Url wahsapp
+    # Url whatsapp
     url_whatsapp = f"https://web.whatsapp.com/send?phone=+34{persona.telefono}&text=Hola+*{persona.nombre}*!!+Echa+un+vistazo+al+siguiente+anuncio%0A{url_publicacion}"
     driver.get(url_whatsapp)
     time.sleep(5)
-    btn_enviar = driver.find_elements(by=By.XPATH, value="//*[@id='main']/footer/div[1]/div/span[2]/div/div[2]/div[2]/button/span[@data-testid='send']")[0]
+    btn_enviar = driver.find_elements(by=By.XPATH,
+                                      value="//*[@id='main']/footer/div[1]/div/span[2]/div/div[2]/div[2]/button/span[@data-testid='send']")[0]
     btn_enviar.click()
     driver.quit()
